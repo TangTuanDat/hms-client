@@ -1,14 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MainNav } from '@/components/main-nav';
 import { SideNav } from '@/components/side-nav';
+
+const queryClient = new QueryClient();
 
 export function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <div className='bg-primary-gradient'>
         <div className='mx-auto max-w-7xl'>
           <div className='text-primary-foreground flex h-16 items-center px-4'>
@@ -26,6 +29,6 @@ export function RootLayoutContent({ children }: { children: React.ReactNode }) {
         </aside>
         <main className='flex-1 p-8'>{children}</main>
       </div>
-    </>
+    </QueryClientProvider>
   );
 }

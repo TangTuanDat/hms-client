@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useGetStaff, useDeleteStaff } from './query.tsx';
-import { StaffForm } from './staff-form';
+import { useGetPatients, useDeletePatient } from './query';
+import { PatientForm } from './patient-form';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import {
@@ -21,40 +21,41 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { Patient } from './query';
 
-export function StaffList() {
-  const { data: staffList, isLoading } = useGetStaff();
-  const { mutate: deleteStaff } = useDeleteStaff();
+export function PatientList() {
+  const { data: patients, isLoading } = useGetPatients();
+  const { mutate: deletePatient } = useDeletePatient();
   const { toast } = useToast();
-  const [selectedStaff, setSelectedStaff] = useState<any>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDelete = (id: string) => {
-    deleteStaff(id, {
+    deletePatient(id, {
       onSuccess: () => {
         toast({
           title: 'Success',
-          description: 'Staff member deleted successfully',
+          description: 'Patient deleted successfully',
         });
       },
       onError: () => {
         toast({
           title: 'Error',
-          description: 'Failed to delete staff member',
+          description: 'Failed to delete patient',
           variant: 'destructive',
         });
       },
     });
   };
 
-  const handleEdit = (staff: any) => {
-    setSelectedStaff(staff);
+  const handleEdit = (patient: Patient) => {
+    setSelectedPatient(patient);
     setIsOpen(true);
   };
 
   const handleSuccess = () => {
     setIsOpen(false);
-    setSelectedStaff(null);
+    setSelectedPatient(null);
   };
 
   if (isLoading) {
@@ -68,16 +69,19 @@ export function StaffList() {
           <DialogTrigger asChild>
             <Button>
               <Plus className='mr-2 h-4 w-4' />
-              New Staff
+              New Patient
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {selectedStaff ? 'Edit Staff' : 'New Staff'}
+                {selectedPatient ? 'Edit Patient' : 'New Patient'}
               </DialogTitle>
             </DialogHeader>
-            <StaffForm initialData={selectedStaff} onSuccess={handleSuccess} />
+            <PatientForm
+              initialData={selectedPatient}
+              onSuccess={handleSuccess}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -87,33 +91,45 @@ export function StaffList() {
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Age</TableHead>
+            <TableHead>Gender</TableHead>
             <TableHead>Phone</TableHead>
-            <TableHead>Role</TableHead>
+            <TableHead>Address</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {staffList?.map((staff: any) => (
-            <TableRow key={staff.id}>
-              <TableCell>{staff.name}</TableCell>
-              <TableCell>{staff.age}</TableCell>
-              <TableCell>{staff.phone}</TableCell>
-              <TableCell>{staff.role}</TableCell>
-              <TableCell>{staff.status}</TableCell>
+          {patients?.map((patient) => (
+            <TableRow key={patient.id}>
+              <TableCell>{patient.name}</TableCell>
+              <TableCell>{patient.age}</TableCell>
+              <TableCell>{patient.gender}</TableCell>
+              <TableCell>{patient.phoneNumber}</TableCell>
+              <TableCell>{patient.address}</TableCell>
+              <TableCell>
+                <span
+                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                    patient.status === 'Active'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-yellow-100 text-yellow-700'
+                  }`}
+                >
+                  {patient.status}
+                </span>
+              </TableCell>
               <TableCell>
                 <div className='flex space-x-2'>
                   <Button
                     variant='ghost'
                     size='icon'
-                    onClick={() => handleEdit(staff)}
+                    onClick={() => handleEdit(patient)}
                   >
                     <Pencil className='h-4 w-4' />
                   </Button>
                   <Button
                     variant='ghost'
                     size='icon'
-                    onClick={() => handleDelete(staff.id)}
+                    onClick={() => handleDelete(patient.id)}
                   >
                     <Trash2 className='h-4 w-4' />
                   </Button>
