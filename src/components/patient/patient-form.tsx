@@ -21,14 +21,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useCreatePatient, useUpdatePatient } from './query';
-import { useToast } from '@/components/ui/use-toast';
-import { Patient } from './query';
+import { useCreatePatient, useUpdatePatient } from '@/api';
+import { useCustomToast } from '@/hooks/use-custom-toast';
+import type { Patient } from '@/api';
+import { formatToTimestampz } from '@/lib/utils';
 
 const formSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  age: z.number().min(0, 'Age must be a positive number'),
-  gender: z.enum(['Male', 'Female', 'Other']),
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  dateOfBirth: z.string(),
+  gender: z.string(),
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
   medicalHistory: z.string().optional(),
@@ -43,15 +45,18 @@ interface PatientFormProps {
 }
 
 export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
-  const { toast } = useToast();
-  const { mutate: createPatient } = useCreatePatient();
-  const { mutate: updatePatient } = useUpdatePatient(initialData?.id || '');
+  const toast = useCustomToast();
+  const createPatient = useCreatePatient();
+  const updatePatient = useUpdatePatient(initialData?.id || '');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: initialData?.name || '',
-      age: initialData?.age || 0,
+      firstName: initialData?.firstName || '',
+      lastName: initialData?.lastName || '',
+      dateOfBirth: initialData?.dateOfBirth
+        ? new Date(initialData.dateOfBirth).toISOString().split('T')[0]
+        : '',
       gender: initialData?.gender || 'Male',
       phoneNumber: initialData?.phoneNumber || '',
       address: initialData?.address || '',
@@ -61,38 +66,29 @@ export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
   });
 
   const onSubmit = (data: FormValues) => {
+    const formattedData = {
+      ...data,
+      dateOfBirth: formatToTimestampz(data.dateOfBirth),
+    };
+
     if (initialData) {
-      updatePatient(data, {
+      updatePatient.mutate(formattedData, {
         onSuccess: () => {
-          toast({
-            title: 'Success',
-            description: 'Patient updated successfully',
-          });
+          toast.success('Success', 'Patient updated successfully');
           onSuccess?.();
         },
-        onError: () => {
-          toast({
-            title: 'Error',
-            description: 'Failed to update patient',
-            variant: 'destructive',
-          });
+        onError: (error) => {
+          toast.error('Error', error.message || 'Failed to update patient');
         },
       });
     } else {
-      createPatient(data, {
+      createPatient.mutate(formattedData, {
         onSuccess: () => {
-          toast({
-            title: 'Success',
-            description: 'Patient created successfully',
-          });
+          toast.success('Success', 'Patient created successfully');
           onSuccess?.();
         },
-        onError: () => {
-          toast({
-            title: 'Error',
-            description: 'Failed to create patient',
-            variant: 'destructive',
-          });
+        onError: (error) => {
+          toast.error('Error', error.message || 'Failed to create patient');
         },
       });
     }
@@ -103,12 +99,12 @@ export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
         <FormField
           control={form.control}
-          name='name'
+          name='firstName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>First Name</FormLabel>
               <FormControl>
-                <Input placeholder='Enter patient name' {...field} />
+                <Input placeholder='Enter first name' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -117,16 +113,29 @@ export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
 
         <FormField
           control={form.control}
-          name='age'
+          name='lastName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Age</FormLabel>
+              <FormLabel>Last Name</FormLabel>
+              <FormControl>
+                <Input placeholder='Enter last name' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='dateOfBirth'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Date of Birth</FormLabel>
               <FormControl>
                 <Input
-                  type='number'
-                  placeholder='Enter patient age'
+                  type='date'
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
+                  value={field.value ? field.value.split('T')[0] : ''}
                 />
               </FormControl>
               <FormMessage />

@@ -20,81 +20,83 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useCreateStaff, useUpdateStaff } from './query';
-import { useNotification } from '@/components/ui/notification';
+import { useCreateStaff, useUpdateStaff } from '@/api';
+import type { Staff } from '@/api';
+import { useCustomToast } from '@/hooks/use-custom-toast';
+import { formatToTimestampz } from '@/lib/utils';
 
 const staffFormSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  age: z.coerce.number().min(18, 'Age must be at least 18'),
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  dateOfBirth: z.string(),
+  address: z.string().min(5, 'Address must be at least 5 characters'),
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits'),
-  roleId: z.string().min(1, 'Please select a role'),
-  status: z.enum(['Active', 'Inactive']),
+  nurseType: z.string(),
+  roleId: z.string(),
+  specialization: z.string(),
+  statusId: z.string(),
 });
 
 type StaffFormValues = z.infer<typeof staffFormSchema>;
 
 interface StaffFormProps {
-  initialData?: {
-    id: string;
-    name: string;
-    age: number;
-    phoneNumber: string;
-    role: {
-      id: string;
-      name: string;
-    };
-    status: 'Active' | 'Inactive';
-  };
-  onSuccess: () => void;
+  initialData?: Staff;
+  onSuccess?: () => void;
 }
 
 export function StaffForm({ initialData, onSuccess }: StaffFormProps) {
-  const { success, error } = useNotification();
-  const { mutate: createStaff } = useCreateStaff();
-  const { mutate: updateStaff } = useUpdateStaff(initialData?.id || '');
+  const toast = useCustomToast();
+  const createStaff = useCreateStaff();
+  const updateStaff = useUpdateStaff(initialData?.id || '');
 
   const form = useForm<StaffFormValues>({
     resolver: zodResolver(staffFormSchema),
     defaultValues: {
-      name: initialData?.name || '',
-      age: initialData?.age || 18,
+      firstName: initialData?.firstName || '',
+      lastName: initialData?.lastName || '',
+      dateOfBirth: initialData?.dateOfBirth
+        ? new Date(initialData.dateOfBirth).toISOString().split('T')[0]
+        : '',
+      address: initialData?.address || '',
       phoneNumber: initialData?.phoneNumber || '',
-      roleId: initialData?.role.id || '',
-      status: initialData?.status || 'Active',
+      nurseType: initialData?.nurseType || '',
+      roleId: initialData?.roleId || 'Nurse',
+      specialization: initialData?.specialization || '',
+      statusId: initialData?.statusId || 'Active',
     },
   });
 
   const onSubmit = (data: StaffFormValues) => {
+    // Format the date to timestamptz before sending to the API
+    const formattedData = {
+      ...data,
+      dateOfBirth: formatToTimestampz(data.dateOfBirth),
+    };
+
     if (initialData) {
-      updateStaff(data, {
+      updateStaff.mutate(formattedData, {
         onSuccess: () => {
-          success({
-            title: 'Success',
-            description: 'Staff member updated successfully',
-          });
-          onSuccess();
+          toast.success('Success', 'Staff member updated successfully');
+          onSuccess?.();
         },
-        onError: () => {
-          error({
-            title: 'Error',
-            description: 'Failed to update staff member',
-          });
+        onError: (error) => {
+          toast.error(
+            'Error',
+            error.message || 'Failed to update staff member',
+          );
         },
       });
     } else {
-      createStaff(data, {
+      createStaff.mutate(formattedData, {
         onSuccess: () => {
-          success({
-            title: 'Success',
-            description: 'Staff member created successfully',
-          });
-          onSuccess();
+          toast.success('Success', 'Staff member created successfully');
+          onSuccess?.();
         },
-        onError: () => {
-          error({
-            title: 'Error',
-            description: 'Failed to create staff member',
-          });
+        onError: (error) => {
+          toast.error(
+            'Error',
+            error.message || 'Failed to create staff member',
+          );
         },
       });
     }
@@ -105,12 +107,12 @@ export function StaffForm({ initialData, onSuccess }: StaffFormProps) {
       <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
         <FormField
           control={form.control}
-          name='name'
+          name='firstName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>First Name</FormLabel>
               <FormControl>
-                <Input placeholder='Enter name' {...field} />
+                <Input placeholder='Enter first name' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -119,12 +121,44 @@ export function StaffForm({ initialData, onSuccess }: StaffFormProps) {
 
         <FormField
           control={form.control}
-          name='age'
+          name='lastName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Age</FormLabel>
+              <FormLabel>Last Name</FormLabel>
               <FormControl>
-                <Input type='number' placeholder='Enter age' {...field} />
+                <Input placeholder='Enter last name' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='dateOfBirth'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Date of Birth</FormLabel>
+              <FormControl>
+                <Input
+                  type='date'
+                  {...field}
+                  value={field.value ? field.value.split('T')[0] : ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='address'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address</FormLabel>
+              <FormControl>
+                <Input placeholder='Enter address' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -147,20 +181,20 @@ export function StaffForm({ initialData, onSuccess }: StaffFormProps) {
 
         <FormField
           control={form.control}
-          name='roleId'
+          name='nurseType'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Role</FormLabel>
+              <FormLabel>Nurse Type</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder='Select a role' />
+                    <SelectValue placeholder='Select nurse type' />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value='1'>Doctor</SelectItem>
-                  <SelectItem value='2'>Nurse</SelectItem>
-                  <SelectItem value='3'>Administrator</SelectItem>
+                  <SelectItem value='LPN'>LPN</SelectItem>
+                  <SelectItem value='RN'>RN</SelectItem>
+                  <SelectItem value='NP'>NP</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -170,7 +204,54 @@ export function StaffForm({ initialData, onSuccess }: StaffFormProps) {
 
         <FormField
           control={form.control}
-          name='status'
+          name='roleId'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Role</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder='Select role' />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value='Nurse'>Nurse</SelectItem>
+                  <SelectItem value='Doctor'>Doctor</SelectItem>
+                  <SelectItem value='Admin'>Admin</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='specialization'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Specialization</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder='Select specialization' />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value='Pediatrics'>Pediatrics</SelectItem>
+                  <SelectItem value='Surgery'>Surgery</SelectItem>
+                  <SelectItem value='Emergency'>Emergency</SelectItem>
+                  <SelectItem value='General'>General</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name='statusId'
           render={({ field }) => (
             <FormItem>
               <FormLabel>Status</FormLabel>

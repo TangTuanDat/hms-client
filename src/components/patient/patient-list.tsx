@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useGetPatients, useDeletePatient } from './query';
+import { useGetPatients, useDeletePatient } from '@/api';
+import type { Patient } from '@/api';
 import { PatientForm } from './patient-form';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
@@ -20,30 +21,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useToast } from '@/components/ui/use-toast';
-import { Patient } from './query';
+import { useCustomToast } from '@/hooks/use-custom-toast';
 
 export function PatientList() {
   const { data: patients, isLoading } = useGetPatients();
-  const { mutate: deletePatient } = useDeletePatient();
-  const { toast } = useToast();
+  const deletePatient = useDeletePatient();
+  const toast = useCustomToast();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDelete = (id: string) => {
-    deletePatient(id, {
+    deletePatient.mutate(id, {
       onSuccess: () => {
-        toast({
-          title: 'Success',
-          description: 'Patient deleted successfully',
-        });
+        toast.success('Success', 'Patient deleted successfully');
       },
       onError: () => {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete patient',
-          variant: 'destructive',
-        });
+        toast.error('Error', 'Failed to delete patient');
       },
     });
   };
@@ -90,33 +83,23 @@ export function PatientList() {
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Age</TableHead>
+            <TableHead>Date of Birth</TableHead>
             <TableHead>Gender</TableHead>
             <TableHead>Phone</TableHead>
             <TableHead>Address</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {patients?.map((patient) => (
             <TableRow key={patient.id}>
-              <TableCell>{patient.name}</TableCell>
-              <TableCell>{patient.age}</TableCell>
+              <TableCell>{`${patient.firstName} ${patient.lastName}`}</TableCell>
+              <TableCell>
+                {new Date(patient.dateOfBirth).toLocaleDateString()}
+              </TableCell>
               <TableCell>{patient.gender}</TableCell>
               <TableCell>{patient.phoneNumber}</TableCell>
               <TableCell>{patient.address}</TableCell>
-              <TableCell>
-                <span
-                  className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                    patient.status === 'Active'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}
-                >
-                  {patient.status}
-                </span>
-              </TableCell>
               <TableCell>
                 <div className='flex space-x-2'>
                   <Button

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useGetStaff, useDeleteStaff } from './query.tsx';
+import { useGetStaff, useDeleteStaff } from '@/api';
+import type { Staff } from '@/api';
 import { StaffForm } from './staff-form';
 import { Button } from '@/components/ui/button';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
@@ -20,34 +21,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useToast } from '@/components/ui/use-toast';
+import { useCustomToast } from '@/hooks/use-custom-toast';
 
 export function StaffList() {
   const { data: staffList, isLoading } = useGetStaff();
-  const { mutate: deleteStaff } = useDeleteStaff();
-  const { toast } = useToast();
-  const [selectedStaff, setSelectedStaff] = useState<any>(null);
+  const deleteStaff = useDeleteStaff();
+  const toast = useCustomToast();
+  const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const handleDelete = (id: string) => {
-    deleteStaff(id, {
+    deleteStaff.mutate(id, {
       onSuccess: () => {
-        toast({
-          title: 'Success',
-          description: 'Staff member deleted successfully',
-        });
+        toast.success('Success', 'Staff member deleted successfully');
       },
       onError: () => {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete staff member',
-          variant: 'destructive',
-        });
+        toast.error('Error', 'Failed to delete staff member');
       },
     });
   };
 
-  const handleEdit = (staff: any) => {
+  const handleEdit = (staff: Staff) => {
     setSelectedStaff(staff);
     setIsOpen(true);
   };
@@ -86,21 +80,23 @@ export function StaffList() {
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Age</TableHead>
-            <TableHead>Phone</TableHead>
+            <TableHead>Date of Birth</TableHead>
             <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead>Specialization</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {staffList?.map((staff: any) => (
+          {staffList?.map((staff) => (
             <TableRow key={staff.id}>
-              <TableCell>{staff.name}</TableCell>
-              <TableCell>{staff.age}</TableCell>
-              <TableCell>{staff.phone}</TableCell>
-              <TableCell>{staff.role}</TableCell>
-              <TableCell>{staff.status}</TableCell>
+              <TableCell>{`${staff.firstName} ${staff.lastName}`}</TableCell>
+              <TableCell>
+                {staff.dateOfBirth
+                  ? new Date(staff.dateOfBirth).toLocaleDateString()
+                  : 'N/A'}
+              </TableCell>
+              <TableCell>{staff.roleId}</TableCell>
+              <TableCell>{staff.specialization}</TableCell>
               <TableCell>
                 <div className='flex space-x-2'>
                   <Button

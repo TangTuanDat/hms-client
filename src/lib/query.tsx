@@ -86,6 +86,27 @@ export function useDeleteMutation<T = void>(
   });
 }
 
+// Generic hook for PATCH requests
+export function usePatchMutation<TResponse, TRequest = void>(
+  endpoint: string,
+  queryKeyToInvalidate: (string | number | undefined)[],
+) {
+  const queryClient = useQueryClient();
+  const finalQueryKey = queryKeyToInvalidate.filter((k) => k !== undefined);
+
+  return useMutation<TResponse, Error, TRequest>({
+    mutationFn: async (data: TRequest) => {
+      const response = await api.patch<TResponse>(endpoint, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      if (finalQueryKey.length > 0) {
+        queryClient.invalidateQueries({ queryKey: finalQueryKey });
+      }
+    },
+  });
+}
+
 // Example usage:
 /*
 // GET example

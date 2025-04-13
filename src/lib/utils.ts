@@ -18,3 +18,9 @@ export function formatCurrency(amount: number): string {
     currency: 'USD',
   }).format(amount);
 }
+
+export function formatToTimestampz(date: string): string {
+  // Takes a date string (YYYY-MM-DD) and converts it to ISO string format
+  // which is compatible with PostgreSQL timestamptz
+  return new Date(date).toISOString();
+}
