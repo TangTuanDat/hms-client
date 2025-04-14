@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useGetPatients, useDeletePatient } from '@/api';
+import { useRouter } from 'next/navigation';
+import { useGetPatients } from '@/api';
 import type { Patient } from '@/api';
 import { PatientForm } from './patient-form';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Pencil, Eye } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -22,29 +23,21 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useCustomToast } from '@/hooks/use-custom-toast';
-import Link from 'next/link';
 
 export function PatientList() {
+  const router = useRouter();
   const { data: patients, isLoading } = useGetPatients();
-  const deletePatient = useDeletePatient();
   const toast = useCustomToast();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleDelete = (id: string) => {
-    deletePatient.mutate(id, {
-      onSuccess: () => {
-        toast.success('Success', 'Patient deleted successfully');
-      },
-      onError: () => {
-        toast.error('Error', 'Failed to delete patient');
-      },
-    });
-  };
-
   const handleEdit = (patient: Patient) => {
     setSelectedPatient(patient);
     setIsOpen(true);
+  };
+
+  const handleViewDetails = (patient: Patient) => {
+    router.push(`/patients/detail/${patient.id}`);
   };
 
   const handleSuccess = () => {
@@ -110,17 +103,12 @@ export function PatientList() {
                   >
                     <Pencil className='h-4 w-4' />
                   </Button>
-                  <Button variant='ghost' size='icon' asChild>
-                    <Link href={`/patients/${patient.id}/medical-records`}>
-                      <Eye className='h-4 w-4' />
-                    </Link>
-                  </Button>
                   <Button
                     variant='ghost'
                     size='icon'
-                    onClick={() => handleDelete(patient.id)}
+                    onClick={() => handleViewDetails(patient)}
                   >
-                    <Trash2 className='h-4 w-4' />
+                    <Eye className='h-4 w-4' />
                   </Button>
                 </div>
               </TableCell>

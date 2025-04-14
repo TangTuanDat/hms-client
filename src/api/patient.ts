@@ -21,12 +21,38 @@ export const useGetPatients = () => {
   });
 };
 
+// Update the getPatient hook to match the new API response structure
+interface PatientResponse {
+  patient: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    gender: string;
+    phoneNumber: string;
+    address: string;
+    medicalHistory: Array<{
+      id: string;
+      date: string;
+      diagnosis: string;
+      treatment: string;
+      notes: string;
+      patientId: string;
+      staffId: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
 // Get patient by ID
 export const useGetPatient = (id: string) => {
-  return useQuery<Patient>({
+  return useQuery<PatientResponse>({
     queryKey: ['patients', id],
     queryFn: async () => {
-      const response = await api.get(`${PATIENTS_BASE_URL}/${id}`);
+      const response = await api.get(`/api/v1/patients/${id}`);
       return response.data;
     },
     enabled: !!id,

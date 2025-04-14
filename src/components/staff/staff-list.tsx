@@ -22,6 +22,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useCustomToast } from '@/hooks/use-custom-toast';
+import { useStaffStore } from '@/stores';
 
 export function StaffList() {
   const { data: staffList, isLoading } = useGetStaff();
@@ -29,6 +30,7 @@ export function StaffList() {
   const toast = useCustomToast();
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const setSelectedStaffId = useStaffStore((state) => state.setSelectedStaffId);
 
   const handleDelete = (id: string) => {
     deleteStaff.mutate(id, {
@@ -41,7 +43,13 @@ export function StaffList() {
     });
   };
 
+  const handleStaffSelect = (staffId: string) => {
+    setSelectedStaffId(staffId);
+    // other actions...
+  };
+
   const handleEdit = (staff: Staff) => {
+    setSelectedStaffId(staff.id);
     setSelectedStaff(staff);
     setIsOpen(true);
   };
