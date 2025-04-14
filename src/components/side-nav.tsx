@@ -22,10 +22,6 @@ const sidebarNavItems = [
         title: 'Staff List',
         href: '/staff/list',
       },
-      {
-        title: 'Scheduling',
-        href: '/staff/schedule',
-      },
     ],
   },
   {

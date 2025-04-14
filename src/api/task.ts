@@ -9,13 +9,29 @@ import {
 const TASKS_BASE_URL = '/api/v1/tasks';
 const STAFF_BASE_URL = '/api/v1/staff';
 
+interface Task {
+  id: string;
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  statusId: string;
+  priority: number;
+  createdAt: string;
+  updatedAt: string;
+  id: string;
+}
+
+interface TasksResponse {
+  tasks: Task[];
+}
+
 // Get all tasks (assuming endpoint exists)
 export const useGetTasks = () => {
-  return useQuery<GetTasksResponse>({
+  return useQuery<TasksResponse>({
     queryKey: ['tasks'],
     queryFn: async () => {
-      const response = await api.get(TASKS_BASE_URL);
-      // Adjust based on actual response structure if needed
+      const response = await api.get('/api/v1/tasks');
       return response.data;
     },
   });
@@ -44,6 +60,33 @@ export const useCreateAndAssignTask = () => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
       // Optionally invalidate the specific staff member's data if relevant
       // queryClient.invalidateQueries({ queryKey: ['staff', variables.staffId] });
+    },
+  });
+};
+
+interface CreateTaskPayload {
+  title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
+  priority: number;
+  statusId: string;
+  staffId: string; // This will be used for the URL, not in the payload
+}
+
+export const useCreateTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ staffId, ...data }: CreateTaskPayload) => {
+      const response = await api.post(`/api/v1/staff/${staffId}/tasks`, {
+        ...data,
+        statusId: 'Pending', // Default status for new tasks
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
 };

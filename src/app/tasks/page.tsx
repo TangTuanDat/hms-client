@@ -1,285 +1,145 @@
 'use client';
 
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useGetTasks, useCreateAndAssignTask, useGetStaff } from '@/api';
-import type { Staff, CreateAndAssignTaskRequest } from '@/api';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useGetTasks } from '@/api/task';
+import { TaskForm } from '@/components/task/task-form';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCustomToast } from '@/hooks/use-custom-toast';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { ClipboardList, Plus } from 'lucide-react';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { formatToTimestampz } from '@/lib/utils';
-
-// Zod schema for the new task form
-const taskFormSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().min(5, 'Description must be at least 5 characters'),
-  staffId: z.string().min(1, 'Please select a staff member'),
-  startTime: z.string().min(1, 'Start time is required'),
-  endTime: z.string().min(1, 'End time is required'),
-  priority: z.coerce.number().int().min(1).max(5).optional(), // Example: 1-5 priority scale
-  statusId: z.string().min(1, 'Please select a status'),
-});
-
-type TaskFormValues = z.infer<typeof taskFormSchema>;
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 export default function TasksPage() {
-  const { data: tasks, isLoading: isLoadingTasks } = useGetTasks();
-  const { data: staffList, isLoading: isLoadingStaff } = useGetStaff();
-  const createAndAssignMutation = useCreateAndAssignTask();
-  const toast = useCustomToast();
+  const { data: tasksData, isLoading: isLoadingTasks } = useGetTasks();
+  const [isOpen, setIsOpen] = useState(false);
+  const tasks = tasksData?.tasks ?? [];
 
-  const form = useForm<TaskFormValues>({
-    resolver: zodResolver(taskFormSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      staffId: '',
-      startTime: '',
-      endTime: '',
-      priority: 3, // Default priority
-      statusId: 'Pending', // Default status
-    },
-  });
+  const getPriorityTag = (priority: number) => {
+    const baseClasses = 'px-2 py-1 rounded-full text-xs font-medium';
 
-  const onSubmit = (data: TaskFormValues) => {
-    const { staffId, ...taskDataInput } = data;
+    if (priority >= 4) {
+      return (
+        <span className={cn(baseClasses, 'bg-red-100 text-red-700')}>
+          {priority}
+        </span>
+      );
+    }
 
-    // Prepare data for the API
-    const taskDataPayload: CreateAndAssignTaskRequest = {
-      ...taskDataInput,
-      // Format dates (now required)
-      startTime: formatToTimestampz(taskDataInput.startTime),
-      endTime: formatToTimestampz(taskDataInput.endTime),
-      // Ensure priority is number or null
-      priority: taskDataInput.priority ?? null,
-    };
+    if (priority >= 2) {
+      return (
+        <span className={cn(baseClasses, 'bg-yellow-100 text-yellow-700')}>
+          {priority}
+        </span>
+      );
+    }
 
-    createAndAssignMutation.mutate(
-      { staffId: staffId, taskData: taskDataPayload },
-      {
-        onSuccess: () => {
-          toast.success(
-            'Task Created & Assigned',
-            `Task "${taskDataPayload.title}" created and assigned successfully.`,
-          );
-          form.reset();
-        },
-        onError: (error) => {
-          toast.error(
-            'Creation Failed',
-            error.message || 'Could not create or assign the task.',
-          );
-        },
-      },
+    return (
+      <span className={cn(baseClasses, 'bg-green-100 text-green-700')}>
+        {priority}
+      </span>
     );
   };
 
-  if (isLoadingStaff) {
-    return <div>Loading staff...</div>;
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-US', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+  };
+
+  const handleSuccess = () => {
+    setIsOpen(false);
+  };
+
+  if (isLoadingTasks) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <div className='container mx-auto space-y-6 p-4'>
-      <h1 className='text-3xl font-bold'>Task Management</h1>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Create and Assign Task</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-              <FormField
-                control={form.control}
-                name='staffId'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assign To Staff</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select staff member...' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {staffList && staffList.length > 0 ? (
-                          staffList.map((staff) => (
-                            <SelectItem key={staff.id} value={staff.id}>
-                              {staff.firstName} {staff.lastName} ({staff.roleId}
-                              )
-                            </SelectItem>
-                          ))
-                        ) : (
-                          <SelectItem value='none' disabled>
-                            No staff available
-                          </SelectItem>
-                        )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='title'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Task Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder='Enter task title' {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='description'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder='Enter task description'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='startTime'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Start Time</FormLabel>
-                    <FormControl>
-                      <Input type='datetime-local' required {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='endTime'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>End Time</FormLabel>
-                    <FormControl>
-                      <Input type='datetime-local' required {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='priority'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Priority (1-5, Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type='number'
-                        min='1'
-                        max='5'
-                        placeholder='e.g., 3'
-                        {...field}
-                        onChange={(event) =>
-                          field.onChange(parseInt(event.target.value, 10))
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name='statusId'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Select status...' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='Pending'>Pending</SelectItem>
-                        <SelectItem value='InProgress'>In Progress</SelectItem>
-                        <SelectItem value='Completed'>Completed</SelectItem>
-                        <SelectItem value='Cancelled'>Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <Button
-                type='submit'
-                disabled={createAndAssignMutation.isPending || isLoadingStaff}
-                className='w-full'
-              >
-                {createAndAssignMutation.isPending
-                  ? 'Creating...'
-                  : 'Create & Assign Task'}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Existing Tasks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoadingTasks ? (
-            <div>Loading tasks...</div>
-          ) : (
-            <p>
-              Task list display coming soon... ({tasks?.length || 0} tasks
-              loaded)
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
+        <div className='flex items-center space-x-4'>
+          <ClipboardList className='text-primary h-8 w-8' />
+          <div>
+            <h1 className='text-3xl font-bold'>Tasks</h1>
+            <p className='text-muted-foreground'>
+              View and manage task assignments
             </p>
-          )}
+          </div>
+        </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className='mr-2 h-4 w-4' />
+              New Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+            </DialogHeader>
+            <TaskForm onSuccess={handleSuccess} />
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Task List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Start Time</TableHead>
+                <TableHead>End Time</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Priority</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow key={task.id}>
+                  <TableCell className='font-medium'>{task.title}</TableCell>
+                  <TableCell>{task.description}</TableCell>
+                  <TableCell>{formatDateTime(task.startTime)}</TableCell>
+                  <TableCell>{formatDateTime(task.endTime)}</TableCell>
+                  <TableCell>
+                    <span className='inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10'>
+                      {task.statusId}
+                    </span>
+                  </TableCell>
+                  <TableCell>{getPriorityTag(task.priority)}</TableCell>
+                </TableRow>
+              ))}
+              {tasks.length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className='text-muted-foreground py-6 text-center'
+                  >
+                    No tasks found
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>
