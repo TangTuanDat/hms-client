@@ -14,11 +14,6 @@ import {
 
 const sidebarNavItems = [
   {
-    title: 'Dashboard',
-    href: '/',
-    icon: LayoutDashboard,
-  },
-  {
     title: 'Staff Management',
     href: '/staff',
     icon: UserCog,
@@ -47,26 +42,6 @@ const sidebarNavItems = [
         href: '/patients/records',
       },
     ],
-  },
-  {
-    title: 'Appointments',
-    href: '/appointments',
-    icon: Calendar,
-    subItems: [
-      {
-        title: 'View All',
-        href: '/appointments/list',
-      },
-      {
-        title: 'Schedule New',
-        href: '/appointments/new',
-      },
-    ],
-  },
-  {
-    title: 'Billing',
-    href: '/billing',
-    icon: FileText,
   },
   {
     title: 'Tasks',

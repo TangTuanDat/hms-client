@@ -47,13 +47,19 @@ export const useCreateStaff = () => {
     },
   });
 };
-
 // Update staff
 export const useUpdateStaff = (id: string) => {
-  return usePatchMutation<Staff, UpdateStaffRequest>(
-    `${STAFF_BASE_URL}/${id}`,
-    ['staff', id],
-  );
+  const queryClient = useQueryClient();
+
+  return useMutation<Staff, Error, UpdateStaffRequest>({
+    mutationFn: async (data) => {
+      const response = await api.patch(`${STAFF_BASE_URL}/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
 };
 
 // Delete staff

@@ -48,12 +48,19 @@ export const useCreatePatient = () => {
   });
 };
 
-// Update patient (using PATCH)
+// Update patient
 export const useUpdatePatient = (id: string) => {
-  return usePatchMutation<Patient, UpdatePatientRequest>(
-    `${PATIENTS_BASE_URL}/${id}`,
-    ['patients', id],
-  );
+  const queryClient = useQueryClient();
+
+  return useMutation<Patient, Error, UpdatePatientRequest>({
+    mutationFn: async (data) => {
+      const response = await api.patch(`${PATIENTS_BASE_URL}/${id}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+    },
+  });
 };
 
 // Delete patient

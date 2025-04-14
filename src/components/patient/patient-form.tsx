@@ -33,7 +33,6 @@ const formSchema = z.object({
   gender: z.string(),
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
-  medicalHistory: z.string().optional(),
   status: z.enum(['Active', 'Inactive']),
 });
 
@@ -60,7 +59,6 @@ export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
       gender: initialData?.gender || 'Male',
       phoneNumber: initialData?.phoneNumber || '',
       address: initialData?.address || '',
-      medicalHistory: initialData?.medicalHistory || '',
       status: initialData?.status || 'Active',
     },
   });
@@ -188,24 +186,6 @@ export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
               <FormLabel>Address</FormLabel>
               <FormControl>
                 <Input placeholder='Enter address' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name='medicalHistory'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Medical History</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder='Enter medical history'
-                  className='resize-none'
-                  {...field}
-                />
               </FormControl>
               <FormMessage />
             </FormItem>
