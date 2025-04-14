@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useGetStaff, useDeleteStaff } from '@/api';
+import { useRouter } from 'next/navigation';
+import { useGetStaff } from '@/api/staff';
 import type { Staff } from '@/api';
 import { StaffForm } from './staff-form';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Eye } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -22,48 +23,26 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useCustomToast } from '@/hooks/use-custom-toast';
-import { useStaffStore } from '@/stores';
 
 export function StaffList() {
+  const router = useRouter();
   const { data: staffList, isLoading } = useGetStaff();
-  const deleteStaff = useDeleteStaff();
   const toast = useCustomToast();
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const setSelectedStaffId = useStaffStore((state) => state.setSelectedStaffId);
-
-  const handleDelete = (id: string) => {
-    deleteStaff.mutate(id, {
-      onSuccess: () => {
-        toast.success('Success', 'Staff member deleted successfully');
-      },
-      onError: (error) => {
-        toast.error('Error', error.message || 'Failed to delete staff member');
-      },
-    });
-  };
-
-  const handleStaffSelect = (staffId: string) => {
-    setSelectedStaffId(staffId);
-    // other actions...
-  };
 
   const handleEdit = (staff: Staff) => {
-    setSelectedStaffId(staff.id);
     setSelectedStaff(staff);
     setIsOpen(true);
+  };
+
+  const handleViewDetails = (staff: Staff) => {
+    router.push(`/staff/detail/${staff.id}`);
   };
 
   const handleSuccess = () => {
     setIsOpen(false);
     setSelectedStaff(null);
-  };
-
-  const handleModalChange = (open: boolean) => {
-    setIsOpen(open);
-    if (!open) {
-      setSelectedStaff(null);
-    }
   };
 
   if (isLoading) {
@@ -73,14 +52,9 @@ export function StaffList() {
   return (
     <div className='space-y-4'>
       <div className='flex justify-end'>
-        <Dialog open={isOpen} onOpenChange={handleModalChange}>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button
-              onClick={() => {
-                setSelectedStaff(null);
-                setIsOpen(true);
-              }}
-            >
+            <Button>
               <Plus className='mr-2 h-4 w-4' />
               New Staff
             </Button>
@@ -93,7 +67,7 @@ export function StaffList() {
             </DialogHeader>
             <div className='max-h-[70vh] overflow-y-auto p-1 pr-2'>
               <StaffForm
-                initialData={selectedStaff}
+                initialData={selectedStaff || undefined}
                 onSuccess={handleSuccess}
               />
             </div>
@@ -137,13 +111,9 @@ export function StaffList() {
                     <Button
                       variant='ghost'
                       size='icon'
-                      onClick={() => handleDelete(staff.id)}
-                      disabled={
-                        deleteStaff.isPending &&
-                        deleteStaff.variables === staff.id
-                      }
+                      onClick={() => handleViewDetails(staff)}
                     >
-                      <Trash2 className='h-4 w-4' />
+                      <Eye className='h-4 w-4' />
                     </Button>
                   </div>
                 </TableCell>

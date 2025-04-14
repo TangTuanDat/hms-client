@@ -88,3 +88,47 @@ export const useGetDoctors = () => {
     },
   });
 };
+
+export interface StaffTask {
+  staffId: string;
+  task: {
+    id: string;
+    title: string;
+    description: string;
+    startTime: string;
+    endTime: string;
+    statusId: string;
+    priority: number;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export interface StaffResponse {
+  staff: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    gender: string;
+    phoneNumber: string;
+    address: string;
+    roleId: string;
+    specialization: string;
+    statusId: string;
+    schedule: StaffTask[];
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export const useGetStaffById = (id: string) => {
+  return useQuery<StaffResponse>({
+    queryKey: ['staff', id],
+    queryFn: async () => {
+      const response = await api.get(`/api/v1/staff/${id}`);
+      return response.data;
+    },
+    enabled: !!id,
+  });
+};
