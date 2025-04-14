@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePatientStore } from '@/stores';
-import { useGetPatient } from '@/api';
+import { useGetPatient, useGetPatientById } from '@/api';
 import {
   useGetMedicalHistory,
   useCreateMedicalRecord,
@@ -58,7 +58,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function PatientDetailPage() {
+export default function PatientDetailPage({
+  params,
+}: {
+  params: { uuid: string };
+}) {
   const router = useRouter();
   const selectedPatientId = usePatientStore((state) => state.selectedPatientId);
   const { data: patient, isLoading: isLoadingPatient } = useGetPatient(
@@ -82,10 +86,17 @@ export default function PatientDetailPage() {
     },
   });
 
-  // Redirect if no patient is selected
-  if (!selectedPatientId) {
-    router.push('/patients/list');
-    return null;
+  const { data, isLoading } = useGetPatientById(params.uuid);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // Safely access the patient data from the response
+  const patientData = data?.patient;
+
+  if (!patientData) {
+    return <div>Patient not found</div>;
   }
 
   const onSubmit = (data: FormValues) => {
@@ -110,10 +121,6 @@ export default function PatientDetailPage() {
     );
   };
 
-  if (isLoadingPatient || isLoadingHistory || isLoadingDoctors) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className='space-y-6'>
       <div className='mb-8 flex items-center gap-4'>
@@ -135,9 +142,9 @@ export default function PatientDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle className='text-2xl'>
-            {patient?.firstName} {patient?.lastName}
+            {patientData.firstName} {patientData.lastName}
           </CardTitle>
-          <CardDescription>Patient ID: {patient?.id}</CardDescription>
+          <CardDescription>Patient ID: {patientData.id}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -147,7 +154,9 @@ export default function PatientDetailPage() {
                 <div>
                   <p className='text-sm font-medium'>Date of Birth</p>
                   <p className='text-muted-foreground text-sm'>
-                    {new Date(patient?.dateOfBirth || '').toLocaleDateString()}
+                    {new Date(
+                      patientData.dateOfBirth || '',
+                    ).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -156,7 +165,7 @@ export default function PatientDetailPage() {
                 <div>
                   <p className='text-sm font-medium'>Gender</p>
                   <p className='text-muted-foreground text-sm'>
-                    {patient?.gender}
+                    {patientData.gender}
                   </p>
                 </div>
               </div>
@@ -167,7 +176,7 @@ export default function PatientDetailPage() {
                 <div>
                   <p className='text-sm font-medium'>Phone Number</p>
                   <p className='text-muted-foreground text-sm'>
-                    {patient?.phoneNumber}
+                    {patientData.phoneNumber}
                   </p>
                 </div>
               </div>
@@ -176,7 +185,7 @@ export default function PatientDetailPage() {
                 <div>
                   <p className='text-sm font-medium'>Address</p>
                   <p className='text-muted-foreground text-sm'>
-                    {patient?.address}
+                    {patientData.address}
                   </p>
                 </div>
               </div>

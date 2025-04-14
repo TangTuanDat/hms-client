@@ -9,7 +9,8 @@ import {
 const TASKS_BASE_URL = '/api/v1/tasks';
 const STAFF_BASE_URL = '/api/v1/staff';
 
-interface Task {
+// Rename the interface to avoid conflict
+export interface TaskDTO {
   id: string;
   title: string;
   description: string;
@@ -19,11 +20,10 @@ interface Task {
   priority: number;
   createdAt: string;
   updatedAt: string;
-  id: string;
 }
 
 interface TasksResponse {
-  tasks: Task[];
+  tasks: TaskDTO[];
 }
 
 // Get all tasks (assuming endpoint exists)
@@ -71,7 +71,7 @@ interface CreateTaskPayload {
   endTime: string;
   priority: number;
   statusId: string;
-  staffId: string; // This will be used for the URL, not in the payload
+  staffId: string;
 }
 
 export const useCreateTask = () => {
@@ -81,7 +81,7 @@ export const useCreateTask = () => {
     mutationFn: async ({ staffId, ...data }: CreateTaskPayload) => {
       const response = await api.post(`/api/v1/staff/${staffId}/tasks`, {
         ...data,
-        statusId: 'Pending', // Default status for new tasks
+        statusId: 'Pending',
       });
       return response.data;
     },

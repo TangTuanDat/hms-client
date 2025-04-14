@@ -66,7 +66,7 @@ export function PatientList() {
               </DialogTitle>
             </DialogHeader>
             <PatientForm
-              initialData={selectedPatient}
+              initialData={selectedPatient || undefined}
               onSuccess={handleSuccess}
             />
           </DialogContent>
