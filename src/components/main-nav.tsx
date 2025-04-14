@@ -32,27 +32,6 @@ export function MainNav({ onMenuToggle }: MainNavProps) {
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href='/staff' legacyBehavior passHref>
-              <NavigationMenuLink className='text-white hover:text-white/90'>
-                Staff Management
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href='/patients' legacyBehavior passHref>
-              <NavigationMenuLink className='text-white hover:text-white/90'>
-                Patient Management
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <Link href='/appointments' legacyBehavior passHref>
-              <NavigationMenuLink className='text-white hover:text-white/90'>
-                Appointments
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
     </div>

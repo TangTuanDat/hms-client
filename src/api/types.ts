@@ -68,16 +68,16 @@ export interface Task {
   assignedStaffId?: string | null;
   createdAt: string;
   updatedAt: string;
-  startTime?: string | null;
-  endTime?: string | null;
+  startTime: string;
+  endTime: string;
   priority?: number | null;
 }
 
 export interface CreateAndAssignTaskRequest {
   title: string;
   description: string;
-  startTime?: string | null;
-  endTime?: string | null;
+  startTime: string;
+  endTime: string;
   priority?: number | null;
   statusId: string;
 }

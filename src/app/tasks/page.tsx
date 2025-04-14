@@ -34,8 +34,8 @@ const taskFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
   description: z.string().min(5, 'Description must be at least 5 characters'),
   staffId: z.string().min(1, 'Please select a staff member'),
-  startTime: z.string().optional(), // Input type="datetime-local" returns string
-  endTime: z.string().optional(), // Input type="datetime-local" returns string
+  startTime: z.string().min(1, 'Start time is required'),
+  endTime: z.string().min(1, 'End time is required'),
   priority: z.coerce.number().int().min(1).max(5).optional(), // Example: 1-5 priority scale
   statusId: z.string().min(1, 'Please select a status'),
 });
@@ -67,13 +67,9 @@ export default function TasksPage() {
     // Prepare data for the API
     const taskDataPayload: CreateAndAssignTaskRequest = {
       ...taskDataInput,
-      // Format dates if they exist and need specific format (like timestampz)
-      startTime: taskDataInput.startTime
-        ? formatToTimestampz(taskDataInput.startTime)
-        : null,
-      endTime: taskDataInput.endTime
-        ? formatToTimestampz(taskDataInput.endTime)
-        : null,
+      // Format dates (now required)
+      startTime: formatToTimestampz(taskDataInput.startTime),
+      endTime: formatToTimestampz(taskDataInput.endTime),
       // Ensure priority is number or null
       priority: taskDataInput.priority ?? null,
     };
@@ -86,7 +82,7 @@ export default function TasksPage() {
             'Task Created & Assigned',
             `Task "${taskDataPayload.title}" created and assigned successfully.`,
           );
-          form.reset(); // Reset form after successful submission
+          form.reset();
         },
         onError: (error) => {
           toast.error(
@@ -184,9 +180,9 @@ export default function TasksPage() {
                 name='startTime'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time (Optional)</FormLabel>
+                    <FormLabel>Start Time</FormLabel>
                     <FormControl>
-                      <Input type='datetime-local' {...field} />
+                      <Input type='datetime-local' required {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -198,9 +194,9 @@ export default function TasksPage() {
                 name='endTime'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time (Optional)</FormLabel>
+                    <FormLabel>End Time</FormLabel>
                     <FormControl>
-                      <Input type='datetime-local' {...field} />
+                      <Input type='datetime-local' required {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

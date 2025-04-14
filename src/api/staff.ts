@@ -75,3 +75,16 @@ export const useDeleteStaff = () => {
     },
   });
 };
+
+// Add this new hook to get only doctors
+export const useGetDoctors = () => {
+  return useQuery<Staff[]>({
+    queryKey: ['staff', 'doctors'],
+    queryFn: async () => {
+      const response = await api.get(STAFF_BASE_URL);
+      return response.data.staffMembers.filter(
+        (staff: Staff) => staff.roleId === 'Doctor',
+      );
+    },
+  });
+};

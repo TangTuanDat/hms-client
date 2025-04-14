@@ -37,10 +37,6 @@ const sidebarNavItems = [
         title: 'Patient List',
         href: '/patients/list',
       },
-      {
-        title: 'Medical Records',
-        href: '/patients/records',
-      },
     ],
   },
   {

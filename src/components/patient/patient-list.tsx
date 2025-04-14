@@ -5,7 +5,7 @@ import { useGetPatients, useDeletePatient } from '@/api';
 import type { Patient } from '@/api';
 import { PatientForm } from './patient-form';
 import { Button } from '@/components/ui/button';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -22,6 +22,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useCustomToast } from '@/hooks/use-custom-toast';
+import Link from 'next/link';
 
 export function PatientList() {
   const { data: patients, isLoading } = useGetPatients();
@@ -108,6 +109,11 @@ export function PatientList() {
                     onClick={() => handleEdit(patient)}
                   >
                     <Pencil className='h-4 w-4' />
+                  </Button>
+                  <Button variant='ghost' size='icon' asChild>
+                    <Link href={`/patients/${patient.id}/medical-records`}>
+                      <Eye className='h-4 w-4' />
+                    </Link>
                   </Button>
                   <Button
                     variant='ghost'
