@@ -198,7 +198,7 @@ export function AddMedicalRecordForm({
 
         <Button
           type='submit'
-          className='w-full'
+          className='w-full bg-green-600 hover:bg-green-700'
           disabled={createMedicalRecord.isPending}
         >
           {createMedicalRecord.isPending ? 'Creating...' : 'Create Record'}

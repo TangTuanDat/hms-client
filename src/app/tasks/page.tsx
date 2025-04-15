@@ -83,7 +83,7 @@ export default function TasksPage() {
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className='bg-green-600 hover:bg-green-700'>
               <Plus className='mr-2 h-4 w-4' />
               New Task
             </Button>

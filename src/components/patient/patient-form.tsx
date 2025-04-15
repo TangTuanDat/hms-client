@@ -33,7 +33,6 @@ const formSchema = z.object({
   gender: z.string(),
   phoneNumber: z.string().min(10, 'Phone number must be at least 10 digits'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
-  status: z.enum(['Active', 'Inactive']),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -41,9 +40,14 @@ type FormValues = z.infer<typeof formSchema>;
 interface PatientFormProps {
   initialData?: Patient;
   onSuccess?: () => void;
+  submitButtonColor?: 'blue' | 'green';
 }
 
-export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
+export function PatientForm({
+  initialData,
+  onSuccess,
+  submitButtonColor = 'green',
+}: PatientFormProps) {
   const toast = useCustomToast();
   const createPatient = useCreatePatient();
   const updatePatient = useUpdatePatient(initialData?.id || '');
@@ -59,7 +63,6 @@ export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
       gender: initialData?.gender || 'Male',
       phoneNumber: initialData?.phoneNumber || '',
       address: initialData?.address || '',
-      status: initialData?.status || 'Active',
     },
   });
 
@@ -192,29 +195,10 @@ export function PatientForm({ initialData, onSuccess }: PatientFormProps) {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name='status'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Status</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder='Select status' />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value='Active'>Active</SelectItem>
-                  <SelectItem value='Inactive'>Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type='submit' className='w-full'>
+        <Button
+          type='submit'
+          className={`w-full ${submitButtonColor === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+        >
           {initialData ? 'Update Patient' : 'Create Patient'}
         </Button>
       </form>

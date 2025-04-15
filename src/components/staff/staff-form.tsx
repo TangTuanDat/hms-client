@@ -271,7 +271,10 @@ export function StaffForm({ initialData, onSuccess }: StaffFormProps) {
           )}
         />
 
-        <Button type='submit' className='w-full'>
+        <Button
+          type='submit'
+          className={`w-full ${initialData ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+        >
           {initialData ? 'Update Staff' : 'Create Staff'}
         </Button>
       </form>

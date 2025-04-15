@@ -12,27 +12,7 @@ const PATIENTS_BASE_URL = '/api/v1/patients';
 
 // First, let's define the correct type for the patient response
 export interface PatientResponse {
-  patient: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    dateOfBirth: string;
-    gender: string;
-    phoneNumber: string;
-    address: string;
-    // add any other fields from your API response
-  };
-}
-
-export interface Patient {
-  id: string;
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  gender: string;
-  phoneNumber: string;
-  address: string;
-  // add any other fields needed
+  patient: Patient;
 }
 
 // Get all patients

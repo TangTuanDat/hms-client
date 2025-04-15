@@ -9,6 +9,17 @@ export interface Patient {
   address: string;
   createdAt: string;
   updatedAt: string;
+  medicalHistory: {
+    id: string;
+    date: string;
+    diagnosis: string;
+    treatment: string;
+    notes: string;
+    staffId: string;
+    patientId: string;
+    createdAt: string;
+    updatedAt: string;
+  }[];
 }
 
 export interface CreatePatientRequest {

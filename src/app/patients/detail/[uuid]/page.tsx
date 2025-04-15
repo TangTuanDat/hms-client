@@ -121,7 +121,9 @@ export default function PatientDetailPage() {
           <h2 className='text-2xl font-semibold'>Medical Records</h2>
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button>Add Medical Record</Button>
+              <Button className='bg-green-600 hover:bg-green-700'>
+                Add Medical Record
+              </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>

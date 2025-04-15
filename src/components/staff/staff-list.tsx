@@ -54,7 +54,13 @@ export function StaffList() {
       <div className='flex justify-end'>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button
+              className='bg-green-600 hover:bg-green-700'
+              onClick={() => {
+                setSelectedStaff(null);
+                setIsOpen(true);
+              }}
+            >
               <Plus className='mr-2 h-4 w-4' />
               New Staff
             </Button>
@@ -102,18 +108,18 @@ export function StaffList() {
                 <TableCell>
                   <div className='flex space-x-2'>
                     <Button
-                      variant='ghost'
-                      size='icon'
-                      onClick={() => handleEdit(staff)}
-                    >
-                      <Pencil className='h-4 w-4' />
-                    </Button>
-                    <Button
-                      variant='ghost'
                       size='icon'
                       onClick={() => handleViewDetails(staff)}
+                      className='bg-cyan-600 hover:bg-cyan-700'
                     >
-                      <Eye className='h-4 w-4' />
+                      <Eye className='h-4 w-4 text-white' />
+                    </Button>
+                    <Button
+                      size='icon'
+                      onClick={() => handleEdit(staff)}
+                      className='bg-blue-600 hover:bg-blue-700'
+                    >
+                      <Pencil className='h-4 w-4 text-white' />
                     </Button>
                   </div>
                 </TableCell>

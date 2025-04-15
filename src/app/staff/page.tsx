@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useGetStaff, useCreateStaff, useDeleteStaff } from '@/api/staff';
+import { CreateStaffRequest } from '@/api/types';
 import { useToast } from '@/components/ui/use-toast';
 import { StaffList } from '@/components/staff/staff-list';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
